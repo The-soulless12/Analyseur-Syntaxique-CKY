@@ -2,10 +2,7 @@ import re
 import random
 from typing import Dict, List, Tuple
 
-# ======================================================
-#               Algorithme CKY
-# ======================================================
-
+# Algorithme CKY
 class CKY:
     def __init__(self, gram: List[Tuple[str, str, str]], lex: Dict[str, List[str]]):
         self.gram = gram 
@@ -103,10 +100,7 @@ class CKY:
         for key in data:
             self.__dict__[key] = data[key]
 
-# ======================================================
-#                Analyste Syntaxique
-# ======================================================
-
+# Fonction d'évaluation
 def pr_eval(ref, sys):
     if ref is None and sys is None:
         return 1.0, 1.0
@@ -234,10 +228,7 @@ class Syntax():
         print('---------------------------------')
         print('P, R: ', P, R)
 
-# ======================================================
-#              Génération de l'arbre
-# ======================================================
-
+# Génération de l'arbre
 def generate_node(node, id=0):
     if node is None:
         return 0, ''
@@ -264,10 +255,6 @@ def generate_graphviz(root, url):
     f = open(url, 'w')
     f.write(res)
     f.close()
-
-# ======================================================
-#                       TESTS
-# ======================================================
 
 # Test de l'algorithme CKY
 def test_cky():

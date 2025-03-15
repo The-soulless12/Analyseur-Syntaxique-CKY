@@ -1,0 +1,23 @@
+digraph Tree {
+N0[label="S"];
+N1[label="NP"];
+N2[label="D=la" shape=box];
+N1 ->  N2;
+N3[label="N=petite" shape=box];
+N1 ->  N3;
+N0 ->  N1;
+N4[label="VP"];
+N5[label="V=forme" shape=box];
+N4 ->  N5;
+N6[label="NP"];
+N7[label="D=une" shape=box];
+N6 ->  N7;
+N8[label="AP"];
+N9[label="J=petite" shape=box];
+N8 ->  N9;
+N10[label="N=phrase" shape=box];
+N8 ->  N10;
+N6 ->  N8;
+N4 ->  N6;
+N0 ->  N4;
+}
