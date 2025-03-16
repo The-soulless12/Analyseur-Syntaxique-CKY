@@ -7,7 +7,7 @@ Implémentation d’un analyseur syntaxique en Python basé sur l’algorithme C
 - Affichage de l'arbre syntaxique pour les phrases valides.  
 
 # Structure du projet  
-- data/ : Contient la grammaire ainsi que le fichier test du programme. 
+- data/ : Contient la grammaire du langage ainsi que le fichier test du programme. 
 - main.py : Point d'entrée du programme, gère l'exécution et l'affichage des résultats.  
 
 # Prérequis  
