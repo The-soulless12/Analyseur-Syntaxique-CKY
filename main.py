@@ -211,9 +211,11 @@ class Syntax():
 def generate_node(node, id=0):
     if node is None:
         return 0, ''
+    
     nid = id + 1
-    if len(node) < 3:
+    if (len(node) == 2) and (type(node[1]) == str) :
         return nid, 'N' + str(id) + '[label="' + node[0] + "=" + node[1] + '" shape=box];\n'
+
     res = 'N' + str(id) + '[label="' + node[0] + '"];\n'
     nid_l = nid
     nid, code = generate_node(node[1], id=nid_l)
