@@ -14,4 +14,4 @@ Implémentation d’un analyseur syntaxique en Python basé sur l’algorithme C
 - Python version 3.x  
 
 # Note  
-- Pour exécuter le projet, saisissez la commande python `main.py` dans votre terminal.
+- Pour exécuter le projet, saisissez la commande `python main.py` dans votre terminal.
