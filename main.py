@@ -7,92 +7,71 @@ class CKY:
     def __init__(self, gram: List[Tuple[str, str, str]], lex: Dict[str, List[str]]):
         self.gram = gram 
         self.lex = lex 
-    
-    def parse(self, sent):
-        T = []  
-        N = len(sent) 
 
+    def parse(self, sent: List[str]) -> List[List[List[Tuple[str, int, int, int]]]]:
+        N = len(sent)
+        T = [[[] for _ in range(N)] for _ in range(N)]
+        
+        # Remplissage de la diagonale avec les règles lexicales
         for i in range(N):
-            T.append([[] for _ in range(N)])
             word = sent[i]
             for A in self.lex.get(word, []):
                 T[i][i].append((A, -1, -1, -1))
-
-        # Les règles unaires (A -> B)
-        for i in range(N):
-            changes = True
-            while changes:
-                changes = False
-                for rule in self.gram:
-                    if len(rule) == 2:
-                        A, B = rule
-                        for b_idx, b_entry in enumerate(T[i][i]):
-                            if b_entry[0] == B and not any(entry[0] == A for entry in T[i][i]):
-                                T[i][i].append((A, i, b_idx, -1))
-                                changes = True
-
-        # Les règles binaires (A -> B C)
-        for length in range(2, N + 1):
-            for i in range(N - length + 1):
-                j = i + length - 1
-                for k in range(i, j):
-                    # Cas M + I -> MV
-                    found_mv = False
-                    for b_idx, b_entry in enumerate(T[i][k]):
-                        if b_entry[0] == 'M':
-                            for c_idx, c_entry in enumerate(T[k + 1][j]):
-                                if c_entry[0] == 'I':
-                                    if not any(entry[0] == 'MV' for entry in T[i][j]):
-                                        T[i][j].append(('MV', k, b_idx, c_idx))
-                                        found_mv = True
-                                        
-                                        # Ajouter directement VP -> MV
-                                        mv_idx = len(T[i][j]) - 1
-                                        if not any(entry[0] == 'VP' for entry in T[i][j]):
-                                            T[i][j].append(('VP', -1, mv_idx, -1))
-                    # Cas I + NP -> VPI
-                    for b_idx, b_entry in enumerate(T[i][k]):
-                        if b_entry[0] == 'I':
-                            for c_idx, c_entry in enumerate(T[k + 1][j]):
-                                if c_entry[0] == 'NP':
-                                    if not any(entry[0] == 'VPI' for entry in T[i][j]):
-                                        T[i][j].append(('VPI', k, b_idx, c_idx))
-
-                    # Les règles binaires normales
+            
+            # Application des règles unitaires
+            added = True
+            while added:
+                added = False
+                current_entries = T[i][i].copy()
+                for entry_idx, entry in enumerate(current_entries):
+                    B = entry[0]
                     for rule in self.gram:
-                        if len(rule) == 3:
-                            A, B, C = rule
-                            for b_idx, b_entry in enumerate(T[i][k]):
-                                if b_entry[0] == B:
-                                    for c_idx, c_entry in enumerate(T[k + 1][j]):
-                                        if c_entry[0] == C:
-                                            if not any(entry[0] == A and entry[1] == k and entry[2] == b_idx and entry[3] == c_idx for entry in T[i][j]):
-                                                T[i][j].append((A, k, b_idx, c_idx))
-
-                    # Les règles unaires après chaque nouvel ajout
-                    idx = 0
-                    while idx < len(T[i][j]):
-                        current_entry = T[i][j][idx]
+                        if len(rule) == 2 and rule[1] == B:
+                            A = rule[0]
+                            # Vérifier si cette règle a déjà été appliquée
+                            if not any(existing[0] == A and existing[2] == entry_idx for existing in T[i][i]):
+                                T[i][i].append((A, i, entry_idx, -1))
+                                added = True
+        
+        # Algorithme CKY
+        for span in range(2, N + 1):
+            for i in range(N - span + 1):
+                j = i + span - 1
+                
+                # Appliquer toutes les règles binaires
+                for k in range(i, j):
+                    for B_idx, B_entry in enumerate(T[i][k]):
+                        B = B_entry[0]
+                        for C_idx, C_entry in enumerate(T[k+1][j]):
+                            C = C_entry[0]
+                            
+                            # Chercher toutes les règles A -> B C
+                            for rule in self.gram:
+                                if len(rule) == 3 and rule[1] == B and rule[2] == C:
+                                    A = rule[0]
+                                    # Vérifier s'il n'existe pas déjà un résultat similaire
+                                    if not any(existing[0] == A and existing[1] == k and 
+                                            existing[2] == B_idx and existing[3] == C_idx 
+                                            for existing in T[i][j]):
+                                        T[i][j].append((A, k, B_idx, C_idx))
+                
+                # Appliquer les règles unitaires
+                added = True
+                while added:
+                    added = False
+                    current_entries = T[i][j].copy()
+                    for entry_idx, entry in enumerate(current_entries):
+                        B = entry[0]
                         for rule in self.gram:
-                            if len(rule) == 2:
-                                A, B = rule
-                                if current_entry[0] == B and not any(entry[0] == A for entry in T[i][j]):
-                                    # Éviter VP -> V si nous avons déjà VP -> MV
-                                    if A == 'VP' and B == 'V' and found_mv:
-                                        continue
-                                    
-                                    T[i][j].append((A, -1, idx, -1))
-                        idx += 1
-
-        if N > 0 and T[0][N - 1]:
-            # Chercher d'abord S, puis VP, puis NP
-            for tag in ['S', 'VP', 'NP']:
-                for entry in T[0][N - 1]:
-                    if entry[0] == tag:
-                        return T
-                    
+                            if len(rule) == 2 and rule[1] == B:
+                                A = rule[0]
+                                # Vérifier si cette règle n'a pas déjà été appliquée
+                                if not any(existing[0] == A and existing[2] == entry_idx for existing in T[i][j]):
+                                    T[i][j].append((A, j, entry_idx, -1))
+                                    added = True
+        
         return T
-    
+
     def export_json(self):
         return self.__dict__.copy()
 
